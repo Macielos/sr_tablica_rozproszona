@@ -216,6 +216,8 @@ public class Connector {
 							socket = new Socket(user.host, user.port);
 							String json = jsonSerializer.toJson(boardUpdate);
 
+							
+
 							OutputStream outputStream = socket.getOutputStream();
 							//outputStream.write(("" + json.length()).getBytes());
 							outputStream.write(json.getBytes());
