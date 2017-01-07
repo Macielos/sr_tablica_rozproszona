@@ -284,9 +284,15 @@ public class Connector {
 	}
 
 	void writeString(OutputStream outputStream, String json) throws IOException {
-		byte[] jsonSizeAsBytes = ByteBuffer.allocate(4).putInt(json.length()).array();
+		byte[] jsonSizeAsBytes = ByteBuffer.allocate(4).putInt(json.getBytes().length).array();
 		outputStream.write(jsonSizeAsBytes);
+		if(log) {
+			Log.i(TAG, "wrote " + jsonSizeAsBytes.length + " bytes of size");
+		}
 		outputStream.write(json.getBytes());
+		if(log) {
+			Log.i(TAG, "wrote " + json.getBytes().length + " bytes of msg");
+		}
 		outputStream.flush();
 	}
 
