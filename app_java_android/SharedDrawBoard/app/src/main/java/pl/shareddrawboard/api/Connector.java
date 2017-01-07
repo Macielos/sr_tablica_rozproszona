@@ -14,9 +14,11 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -102,10 +104,8 @@ public class Connector {
 						Log.i(TAG, "listening for board updates on port "+myUser.port);
 						socket = listenerSocket.accept();
 						otherUserDrawStream = socket.getInputStream();
-						int readBytes = otherUserDrawStream.read(buffer);
-						Log.i(TAG, "read " + readBytes + " bytes");
-						byte[] filledBytes = Arrays.copyOf(buffer, readBytes);
-						BoardUpdate boardUpdate = jsonSerializer.fromJson(new String(filledBytes));
+
+						BoardUpdate boardUpdate = jsonSerializer.fromJson(readString(otherUserDrawStream));
 						board.update(boardUpdate);
 						view.postInvalidate();
 					} catch (IOException e) {
@@ -139,8 +139,8 @@ public class Connector {
 	private static final String CONNECTION_ERROR = "did not find ip, probably not connected to the internet";
 	private static final int DEFAULT_PORT = 28000;
 
-	private final User user1 = new User("192.168.1.110", 28000);
-	private final User user2 = new User("192.168.1.102", 28000);
+	private final User user1 = new User("192.168.1.106", DEFAULT_PORT);
+	private final User user2 = new User("192.168.1.102", DEFAULT_PORT);
 
 	private final List<User> users = Arrays.asList(user1, user2);
 	private final User me;
@@ -153,8 +153,10 @@ public class Connector {
 	private final Board board;
 	private final View view;
 
+	private boolean log = true;
+
 	private ThreadPoolExecutor newExecutor() {
-		return new ThreadPoolExecutor(4, 16, 0, TimeUnit.MICROSECONDS, new LinkedBlockingDeque<Runnable>());
+		return new ThreadPoolExecutor(4, 16, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>());
 	}
 
 	public Connector(Board board, View view) throws ConnectException {
@@ -162,11 +164,18 @@ public class Connector {
 	}
 
 	public Connector(String host, int port, Board board, View view) {
+		this(host, port, board, view, true);
+	}
+
+	public Connector(String host, int port, Board board, View view, boolean log) {
 		this.board = board;
 		this.view = view;
 		this.me = new User(host, port);
+		this.log = log;
 
-		Log.i(TAG, "creating listener for user "+me);
+		if(log) {
+			Log.i(TAG, "creating listener for user " + me);
+		}
 		try {
 			boardUpdateListeners.add(new BoardUpdateListener(me));
 		} catch (IOException e) {
@@ -216,12 +225,8 @@ public class Connector {
 							socket = new Socket(user.host, user.port);
 							String json = jsonSerializer.toJson(boardUpdate);
 
-							
-
 							OutputStream outputStream = socket.getOutputStream();
-							//outputStream.write(("" + json.length()).getBytes());
-							outputStream.write(json.getBytes());
-							outputStream.flush();
+							writeString(outputStream, json);
 							Log.i(TAG, "sent "+boardUpdate.getPointsDrawn().size() + " points to "+user);
 						} catch (JSONException e) {
 							Log.e(TAG, "failed to parse json from " + boardUpdate + ": " + e);
@@ -242,6 +247,47 @@ public class Connector {
 				});
 			}
 		}
+	}
+
+	/**
+	 * Struktura wiadomości:
+	 * - 4 bajty - integer - rozmiar jsona
+	 * - właściwy json o rozmiarze jw
+	 */
+	String readString(InputStream inputStream) throws IOException {
+		//czytamy rozmiar jsona
+		int bufferSize = 4;
+		byte[] buffer = new byte[bufferSize];
+		int readBytes = inputStream.read(buffer, 0, bufferSize);
+		if(log) {
+			Log.i(TAG, "read " + readBytes + " bytes of size");
+		}
+		if(readBytes != bufferSize) {
+			throw new RuntimeException("wrong json size length: got "+readBytes+" bytes but expected "+bufferSize);
+		}
+
+		//konwersja byte[] na int
+		ByteBuffer bb = ByteBuffer.allocate(bufferSize).put(buffer, 0, bufferSize);
+		bb.position(0);
+		int jsonSize = bb.getInt();
+
+		//czytamy reszte
+		buffer = new byte[jsonSize];
+		readBytes = inputStream.read(buffer, 0, jsonSize);
+		if(readBytes != jsonSize) {
+			throw new RuntimeException("wrong json length: got "+readBytes+" bytes but expected "+jsonSize);
+		}
+		if(log) {
+			Log.i(TAG, "read " + readBytes + " bytes of msg");
+		}
+		return new String(buffer);
+	}
+
+	void writeString(OutputStream outputStream, String json) throws IOException {
+		byte[] jsonSizeAsBytes = ByteBuffer.allocate(4).putInt(json.length()).array();
+		outputStream.write(jsonSizeAsBytes);
+		outputStream.write(json.getBytes());
+		outputStream.flush();
 	}
 
 }

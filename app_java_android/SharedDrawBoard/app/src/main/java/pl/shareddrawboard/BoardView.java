@@ -97,7 +97,7 @@ public class BoardView extends View implements View.OnTouchListener {
 		//Log.i(TAG, "drawing "+boardUpdate.getPointsDrawn().size()+" points");
 
 		// Draw the text.
-		canvas.drawText("hello kurwa world "+board.getWidth()+", "+board.getHeight(), 30, 120,
+		canvas.drawText("board size "+board.getWidth()+", "+board.getHeight(), 30, 120,
 				mTextPaint);
 
 	}

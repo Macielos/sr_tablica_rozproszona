@@ -31,4 +31,23 @@ public class BoardUpdate {
 	public void setBrushColor(int color) {
 		this.brushColor = color;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		BoardUpdate that = (BoardUpdate) o;
+
+		if (brushColor != that.brushColor) return false;
+		return pointsDrawn.equals(that.pointsDrawn);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = pointsDrawn.hashCode();
+		result = 31 * result + brushColor;
+		return result;
+	}
 }
