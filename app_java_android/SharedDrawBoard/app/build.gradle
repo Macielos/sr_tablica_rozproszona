@@ -13,6 +13,7 @@ android {
     buildToolsVersion "23.0.3"
     defaultConfig {
         applicationId "pl.shareddrawboard"
+        signingConfig signingConfigs.config
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
@@ -26,22 +27,6 @@ android {
         }
     }
     productFlavors {
-        app1 {
-            applicationId = "pl.shareddrawboard.app1"
-            buildConfigField 'String', 'host', '"localhost"'
-            buildConfigField 'int', 'port', '28000'
-            minSdkVersion 23
-            signingConfig signingConfigs.config
-            targetSdkVersion 23
-        }
-        app2 {
-            applicationId = "pl.shareddrawboard.app2"
-            buildConfigField 'String', 'host', '"localhost"'
-            buildConfigField 'int', 'port', '28001'
-            minSdkVersion 23
-            signingConfig signingConfigs.config
-            targetSdkVersion 23
-        }
     }
 }
 

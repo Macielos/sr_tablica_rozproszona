@@ -13,7 +13,7 @@ public class JsonSerializer {
 	public String toJson(BoardUpdate boardUpdate) throws JSONException {
 		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonPoints = new JSONArray();
-		for (Point point : boardUpdate.getPixelsDrawn()) {
+		for (Point point : boardUpdate.getPointsDrawn()) {
 			JSONObject jsonPoint = new JSONObject();
 			jsonPoint.put("x", point.x);
 			jsonPoint.put("y", point.y);
@@ -30,7 +30,7 @@ public class JsonSerializer {
 		JSONArray jsonPoints = jsonObject.getJSONArray("points");
 		for (int i = 0; i < jsonPoints.length(); ++i) {
 			JSONObject jsonPoint = jsonPoints.getJSONObject(i);
-			boardUpdate.addPixelDrawn(new Point(jsonPoint.getInt("x"), jsonPoint.getInt("y")));
+			boardUpdate.addPointDrawn(new Point(jsonPoint.getInt("x"), jsonPoint.getInt("y")));
 		}
 		return boardUpdate;
 	}

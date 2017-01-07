@@ -11,11 +11,11 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.net.ConnectException;
+
 import pl.shareddrawboard.api.BoardUpdate;
 import pl.shareddrawboard.api.Connector;
 import pl.shareddrawboard.api.Point;
-
-import static android.R.attr.thickness;
 
 public class BoardView extends View implements View.OnTouchListener {
 
@@ -57,11 +57,16 @@ public class BoardView extends View implements View.OnTouchListener {
 		setBackgroundColor(Color.LTGRAY);
 
 		board = new Board(200, 150);
-		connector = new Connector(BuildConfig.host, BuildConfig.port, board);
+		try {
+			connector = new Connector(board, this);
+			connector.startListeners();
+		} catch (ConnectException e) {
+			//TODO jebnij komunikatem ze nic nie przeslesz bo nie ma neta
+			e.printStackTrace();
+		}
 
 		setOnTouchListener(this);
 
-		connector.startListeners();
 	}
 
 	@Override
@@ -72,7 +77,7 @@ public class BoardView extends View implements View.OnTouchListener {
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		Log.i(TAG, "draaawing");
+		//Log.i(TAG, "draaawing");
 		super.onDraw(canvas);
 
 		paint.setColor(Color.WHITE);
@@ -83,13 +88,13 @@ public class BoardView extends View implements View.OnTouchListener {
 			for (int i = 0; i < board.getWidth(); ++i) {
 				int field = board.getField(i, j);
 				if(field != Color.WHITE) {
-					Log.i(TAG, "draaawing at "+i+","+j);
+					//Log.i(TAG, "draaawing at "+i+","+j);
 					canvas.drawRect(fieldSize*i, fieldSize*j, fieldSize*(i + 1), fieldSize*(j + 1), paint);
 				}
 			}
 		}
 
-		//Log.i(TAG, "drawing "+boardUpdate.getPixelsDrawn().size()+" points");
+		//Log.i(TAG, "drawing "+boardUpdate.getPointsDrawn().size()+" points");
 
 		// Draw the text.
 		canvas.drawText("hello kurwa world "+board.getWidth()+", "+board.getHeight(), 30, 120,
@@ -129,8 +134,9 @@ public class BoardView extends View implements View.OnTouchListener {
 				break;
 			case MotionEvent.ACTION_UP:
 				//Log.i(TAG, "UP: "+event.toString());
-				Log.i(TAG, boardUpdate.getPixelsDrawn().size() + " pixels");
-				connector.sendBoardUpdate(boardUpdate);
+				if(connector != null) {
+					connector.sendBoardUpdate(boardUpdate);
+				}
 				boardUpdate = null;
 				break;
 		}
@@ -138,15 +144,15 @@ public class BoardView extends View implements View.OnTouchListener {
 	}
 
 	private void addPoint(Point point) {
-		if (!boardUpdate.getPixelsDrawn().isEmpty()) {
-			Point previous = boardUpdate.getPixelsDrawn().get(boardUpdate.getPixelsDrawn().size() - 1);
+		if (!boardUpdate.getPointsDrawn().isEmpty()) {
+			Point previous = boardUpdate.getPointsDrawn().get(boardUpdate.getPointsDrawn().size() - 1);
 			if (point.equals(previous)) {
 				return;
 			}
 		}
 
 		board.update(point, boardUpdate.getBrushColor());
-		boardUpdate.addPixelDrawn(point);
+		boardUpdate.addPointDrawn(point);
 		invalidate();
 		Log.i(TAG, "adding point " + point + "of color "+boardUpdate.getBrushColor());
 

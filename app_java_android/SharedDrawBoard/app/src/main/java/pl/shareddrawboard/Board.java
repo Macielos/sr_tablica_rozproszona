@@ -1,7 +1,6 @@
 package pl.shareddrawboard;
 
 import android.graphics.Color;
-import android.graphics.Paint;
 
 import pl.shareddrawboard.api.BoardUpdate;
 import pl.shareddrawboard.api.Point;
@@ -47,7 +46,7 @@ public class Board {
 	}
 
 	public void update(BoardUpdate boardUpdate) {
-		for (Point point : boardUpdate.getPixelsDrawn()) {
+		for (Point point : boardUpdate.getPointsDrawn()) {
 			update(point, boardUpdate.getBrushColor());
 		}
 	}

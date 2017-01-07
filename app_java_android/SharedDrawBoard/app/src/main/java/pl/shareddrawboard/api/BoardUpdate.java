@@ -9,19 +9,19 @@ import java.util.List;
 
 public class BoardUpdate {
 
-	private final List<Point> pixelsDrawn = new ArrayList<>();
+	private final List<Point> pointsDrawn = new ArrayList<>();
 	private int brushColor;
 
 	public BoardUpdate(int brushColor) {
 		this.brushColor = brushColor;
 	}
 
-	public void addPixelDrawn(Point point) {
-		pixelsDrawn.add(point);
+	public void addPointDrawn(Point point) {
+		pointsDrawn.add(point);
 	}
 
-	public List<Point> getPixelsDrawn() {
-		return pixelsDrawn;
+	public List<Point> getPointsDrawn() {
+		return pointsDrawn;
 	}
 
 	public int getBrushColor() {
