@@ -1,9 +1,7 @@
 package pl.shareddrawboard.api;
 
-import android.graphics.Color;
 import android.util.Log;
 
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,17 +9,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-
-import pl.shareddrawboard.api.BoardUpdate;
-import pl.shareddrawboard.api.Connector;
-import pl.shareddrawboard.api.JsonSerializer;
-import pl.shareddrawboard.api.Point;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,8 +36,7 @@ public class ConnectorTest {
 		FileOutputStream fileOutputStream = new FileOutputStream(file);
 		FileInputStream fileInputStream = new FileInputStream(file);
 
-		JsonSerializer jsonSerializer = new JsonSerializer();
-		Connector connector = new Connector("abc", 12345, null, null, false);
+		Connector connector = new Connector("abc", 12345, "qwerty", null, false);
 
 		String expectedTestString = "dfckldfjvklgjvkrgvjkrgjvkrgfjvkgj";
 		connector.writeString(fileOutputStream, expectedTestString);

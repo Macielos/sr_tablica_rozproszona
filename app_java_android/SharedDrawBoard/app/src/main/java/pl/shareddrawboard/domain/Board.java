@@ -1,9 +1,9 @@
-package pl.shareddrawboard;
+package pl.shareddrawboard.domain;
 
 import android.graphics.Color;
 
-import pl.shareddrawboard.api.BoardUpdate;
-import pl.shareddrawboard.api.Point;
+import pl.shareddrawboard.domain.BoardUpdate;
+import pl.shareddrawboard.domain.Point;
 
 /**
  * Created by Arjan on 07.01.2017.

@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.View;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +26,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import pl.shareddrawboard.Board;
+import pl.shareddrawboard.domain.Board;
+import pl.shareddrawboard.domain.BoardUpdate;
 
 /**
  * Created by Arjan on 29.12.2016.
@@ -36,16 +38,14 @@ public class Connector {
 	private class User {
 		private final String host;
 		private final int port;
+		private String name;
 
 		private boolean connected = true;
 
-		public User(String host, int port) {
+		public User(String host, int port, String name) {
 			this.host = host;
 			this.port = port;
-		}
-
-		public String getAddress() {
-			return host+":"+port;
+			this.name = name;
 		}
 
 		@Override
@@ -95,10 +95,18 @@ public class Connector {
 							public void run() {
 								try {
 									otherUserDrawStream = socket.getInputStream();
+									JSONObject messageJsonObject = new JSONObject(readString(otherUserDrawStream));
+									//TODO wypierdzielic te nazwy pol do stalych
+									switch(messageJsonObject.getString("action")) {
+										case "draw":
+											BoardUpdate boardUpdate = jsonSerializer.fromJson(messageJsonObject);
+											board.update(boardUpdate);
+											view.postInvalidate();
+											break;
+										default:
+											Log.w(TAG, "invalid msg type for json: "+messageJsonObject);
+									}
 
-									BoardUpdate boardUpdate = jsonSerializer.fromJson(readString(otherUserDrawStream));
-									board.update(boardUpdate);
-									view.postInvalidate();
 								} catch (IOException | JSONException e) {
 									e.printStackTrace();
 								} finally {
@@ -122,11 +130,11 @@ public class Connector {
 
 	private static final String CONNECTION_ERROR = "did not find ip, probably not connected to the internet";
 	private static final int DEFAULT_PORT = 28000;
-	private static final int CONNECT_RETRIES_ALLOWED = 5;
+	private static final int CONNECT_RETRIES_ALLOWED = 3;
 
-	private final User user1 = new User("192.168.1.106", DEFAULT_PORT);
-	private final User user2 = new User("192.168.1.102", DEFAULT_PORT);
-	private final User user3 = new User("10.0.2.15", DEFAULT_PORT); //192.168.1.110
+	private final User user1 = new User("192.168.1.106", DEFAULT_PORT, "abc");
+	private final User user2 = new User("192.168.1.102", DEFAULT_PORT, "xyz");
+	private final User user3 = new User("10.0.2.15", DEFAULT_PORT, "qwerty"); //192.168.1.110
 
 	//tylko do testow, poki nie dziala serwer do znajdowania userow
 	private final List<User> allUsers = Arrays.asList(user1, user2, user3);
@@ -140,7 +148,7 @@ public class Connector {
 
 	private final JsonSerializer jsonSerializer = new JsonSerializer();
 	private final Board board;
-	private final View view;
+	private View view;
 
 	private boolean log = true;
 
@@ -152,19 +160,21 @@ public class Connector {
 		return new ThreadPoolExecutor(8, 8, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>());
 	}
 
-	public Connector(Board board, View view) throws ConnectException {
-		this(getIP(), DEFAULT_PORT, board, view, true);
+	public Connector(String name, Board board) throws ConnectException {
+		this(getIP(), DEFAULT_PORT, name, board, true);
 	}
 
-	public Connector(String host, int port, Board board, View view, boolean log) {
+	public Connector(String host, int port, String name, Board board, boolean log) {
 		this.board = board;
-		this.view = view;
-		this.me = new User(host, port);
+		this.me = new User(host, port, name);
 		this.log = log;
 
+		//temp
 		for(User user: allUsers) {
 			if(!isMe(user)) {
 				joinUser(user);
+			} else {
+				me.name = user.name;
 			}
 		}
 
@@ -177,6 +187,10 @@ public class Connector {
 			Log.e(TAG, "failed to create server socket for user " + me + ", exception is " + e);
 			e.printStackTrace();
 		}
+	}
+
+	public void setView(View view) {
+		this.view = view;
 	}
 
 	private boolean isMe(User user) {
@@ -248,7 +262,8 @@ public class Connector {
 						int retriesLeft = CONNECT_RETRIES_ALLOWED;
 						while (!ok && retriesLeft > 0) {
 							try (Socket socket = new Socket(user.host, user.port)) {
-								String json = jsonSerializer.toJson(boardUpdate);
+								socket.setSoTimeout(10000);
+								String json = jsonSerializer.toJson(me.name, boardUpdate);
 
 								OutputStream outputStream = socket.getOutputStream();
 								writeString(outputStream, json);

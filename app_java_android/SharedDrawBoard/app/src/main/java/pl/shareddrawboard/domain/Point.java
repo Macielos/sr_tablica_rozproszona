@@ -1,4 +1,4 @@
-package pl.shareddrawboard.api;
+package pl.shareddrawboard.domain;
 
 /**
  * Created by Arjan on 29.12.2016.

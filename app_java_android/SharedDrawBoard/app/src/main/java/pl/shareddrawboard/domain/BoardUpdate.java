@@ -1,4 +1,4 @@
-package pl.shareddrawboard.api;
+package pl.shareddrawboard.domain;
 
 import java.util.ArrayList;
 import java.util.List;

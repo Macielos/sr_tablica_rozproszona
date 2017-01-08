@@ -13,9 +13,11 @@ import android.view.View;
 
 import java.net.ConnectException;
 
-import pl.shareddrawboard.api.BoardUpdate;
+import pl.shareddrawboard.domain.Board;
+import pl.shareddrawboard.domain.BoardUpdate;
 import pl.shareddrawboard.api.Connector;
-import pl.shareddrawboard.api.Point;
+import pl.shareddrawboard.domain.Point;
+import pl.shareddrawboard.domain.StateContainer;
 
 public class BoardView extends View implements View.OnTouchListener {
 
@@ -57,14 +59,10 @@ public class BoardView extends View implements View.OnTouchListener {
 		paint = new Paint();
 		setBackgroundColor(Color.LTGRAY);
 
-		board = new Board(200, 150);
-		try {
-			connector = new Connector(board, this);
-			connector.startListeners();
-		} catch (ConnectException e) {
-			//TODO jebnij komunikatem ze nic nie przeslesz bo nie ma neta
-			e.printStackTrace();
-		}
+		connector = StateContainer.instance.getConnector();
+		board = StateContainer.instance.getBoard();
+
+		connector.setView(this);
 
 		setOnTouchListener(this);
 
