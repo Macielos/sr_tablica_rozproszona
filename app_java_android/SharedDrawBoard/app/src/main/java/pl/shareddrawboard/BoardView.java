@@ -30,6 +30,7 @@ public class BoardView extends View implements View.OnTouchListener {
 
 	int fieldSize = 5;
 	int currentColor = Color.BLACK;
+	int currentBrushSize = 5;
 
 	public BoardView(Context context) {
 		super(context);
@@ -114,17 +115,11 @@ public class BoardView extends View implements View.OnTouchListener {
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getActionMasked()) {
-			case MotionEvent.ACTION_POINTER_UP:
-				//Log.i(TAG, "PTR UP: "+event.toString());
-				break;
-			case MotionEvent.ACTION_POINTER_DOWN:
-				//Log.i(TAG, "PTR DOWN: "+event.toString());
-				break;
-			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_DOWN: case MotionEvent.ACTION_POINTER_DOWN:
 				//Log.i(TAG, "DOWN: "+event.toString());
 				if (boardUpdate == null) {
 					Log.i(TAG, "new board");
-					boardUpdate = new BoardUpdate(currentColor);
+					boardUpdate = new BoardUpdate(currentColor, currentBrushSize);
 				}
 				addPoint(new Point(event.getX()/fieldSize, event.getY()/fieldSize));
 				break;
@@ -132,10 +127,12 @@ public class BoardView extends View implements View.OnTouchListener {
 				//Log.i(TAG, "MOVE: "+event.toString());
 				addPoint(new Point(event.getX()/fieldSize, event.getY()/fieldSize));
 				break;
-			case MotionEvent.ACTION_UP:
-				//Log.i(TAG, "UP: "+event.toString());
+			case MotionEvent.ACTION_UP: case MotionEvent.ACTION_POINTER_UP:
+				Log.i(TAG, "UP: "+event.toString());
 				if(connector != null) {
 					connector.sendBoardUpdate(boardUpdate);
+				} else {
+					Log.e(TAG, "DISCONNECTED KURWA");
 				}
 				boardUpdate = null;
 				break;
@@ -151,7 +148,7 @@ public class BoardView extends View implements View.OnTouchListener {
 			}
 		}
 
-		board.update(point, boardUpdate.getBrushColor());
+		board.update(point, boardUpdate.getBrushSize(), boardUpdate.getBrushColor());
 		boardUpdate.addPointDrawn(point);
 		invalidate();
 		Log.i(TAG, "adding point " + point + "of color "+boardUpdate.getBrushColor());

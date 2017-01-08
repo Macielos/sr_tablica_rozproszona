@@ -21,12 +21,13 @@ public class JsonSerializer {
 		}
 		jsonObject.put("points", jsonPoints);
 		jsonObject.put("brushColor", boardUpdate.getBrushColor());
+		jsonObject.put("brushSize", boardUpdate.getBrushSize());
 		return jsonObject.toString();
 	}
 
 	public BoardUpdate fromJson(String json) throws JSONException {
 		JSONObject jsonObject = new JSONObject(json);
-		BoardUpdate boardUpdate = new BoardUpdate(jsonObject.getInt("brushColor"));
+		BoardUpdate boardUpdate = new BoardUpdate(jsonObject.getInt("brushColor"), jsonObject.getInt("brushSize"));
 		JSONArray jsonPoints = jsonObject.getJSONArray("points");
 		for (int i = 0; i < jsonPoints.length(); ++i) {
 			JSONObject jsonPoint = jsonPoints.getJSONObject(i);

@@ -26,11 +26,6 @@ public class Board {
 				board[j][i] = Color.WHITE;
 			}
 		}
-/*		for (int j = 10; j < 20; ++j) {
-			for (int i = 10; i < 20; ++i) {
-				board[j][i] = Color.BLACK;
-			}
-		}*/
 	}
 
 	public int getWidth() {
@@ -47,13 +42,21 @@ public class Board {
 
 	public void update(BoardUpdate boardUpdate) {
 		for (Point point : boardUpdate.getPointsDrawn()) {
-			update(point, boardUpdate.getBrushColor());
+			update(point, boardUpdate.getBrushSize(), boardUpdate.getBrushColor());
 		}
 	}
 
-	public void update(Point point, int color) {
-		if (isWithinBoard(point.x, point.y)) {
-			board[point.y][point.x] = color;
+	public void update(Point point, int size, int color) {
+		for(int i = point.x - size/2; i < point.x + size/2; ++i) {
+			for(int j = point.y - size/2; j < point.y + size/2; ++j) {
+				updatePoint(i, j, color);
+			}
+		}
+	}
+
+	private void updatePoint(int x, int y, int color) {
+		if (isWithinBoard(x, y)) {
+			board[y][x] = color;
 		}
 	}
 
