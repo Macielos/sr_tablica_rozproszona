@@ -9,18 +9,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
-import java.net.Inet4Address;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.SocketOptions;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +42,10 @@ public class Connector {
 		public User(String host, int port) {
 			this.host = host;
 			this.port = port;
+		}
+
+		public String getAddress() {
+			return host+":"+port;
 		}
 
 		@Override
@@ -86,7 +90,7 @@ public class Connector {
 					Log.i(TAG, "listening for board updates on port "+myUser.port);
 					final Socket socket = listenerSocket.accept();
 					if(socket != null) {
-						sendBoardUpdateExecutor.execute(new Runnable() {
+						boardUpdateExecutor.execute(new Runnable() {
 							@Override
 							public void run() {
 								try {
@@ -127,10 +131,10 @@ public class Connector {
 	//tylko do testow, poki nie dziala serwer do znajdowania userow
 	private final List<User> allUsers = Arrays.asList(user1, user2, user3);
 
-	private final List<User> users = new ArrayList<>();
 	private final User me;
 
-	private final ThreadPoolExecutor sendBoardUpdateExecutor = newExecutor();
+	private final ThreadPoolExecutor boardUpdateExecutor = newExecutor();
+	private final Map<User, ThreadPoolExecutor> userSendBoardUpdateExecutors = new HashMap<>();
 
 	private final List<BoardUpdateListener> boardUpdateListeners = new ArrayList<>();
 
@@ -140,9 +144,12 @@ public class Connector {
 
 	private boolean log = true;
 
-	//TODO kazdy user powinien miec swoja pule? (jak jednemu zrywa lacze to nie blokuje pozostalych)
+	/* TODO
+	- usuwanie usera po N nieudanych probach nie chce dzialac
+	- dodac jakich mechanizm synchronizacji tablicy jak komus zmuli lacze
+	 */
 	private ThreadPoolExecutor newExecutor() {
-		return new ThreadPoolExecutor(32, 32, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>());
+		return new ThreadPoolExecutor(8, 8, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>());
 	}
 
 	public Connector(Board board, View view) throws ConnectException {
@@ -157,7 +164,7 @@ public class Connector {
 
 		for(User user: allUsers) {
 			if(!isMe(user)) {
-				users.add(user);
+				joinUser(user);
 			}
 		}
 
@@ -218,6 +225,10 @@ public class Connector {
 		throw new ConnectException(CONNECTION_ERROR);
 	}
 
+	public void joinUser(User user) {
+		userSendBoardUpdateExecutors.put(user, newExecutor());
+	}
+
 	public void startListeners() {
 		for (BoardUpdateListener boardUpdateListener : boardUpdateListeners) {
 			boardUpdateListener.start();
@@ -225,10 +236,11 @@ public class Connector {
 	}
 
 	public void sendBoardUpdate(final BoardUpdate boardUpdate) {
-		for (final User user : users) {
-			Log.i(TAG, "submit send "+boardUpdate.getPointsDrawn().size() + " points to "+user+", enqueued updates: "+sendBoardUpdateExecutor.getQueue().size());
+		for (final Map.Entry<User, ThreadPoolExecutor> entry: userSendBoardUpdateExecutors.entrySet()) {
+			final User user = entry.getKey();
+			Log.i(TAG, "submit send "+boardUpdate.getPointsDrawn().size() + " points to "+user+", active threads: "+entry.getValue().getActiveCount()+", enqueued updates: "+ entry.getValue().getTaskCount());
 			if(user.connected) {
-				sendBoardUpdateExecutor.execute(new Runnable() {
+				entry.getValue().execute(new Runnable() {
 					@Override
 					public void run() {
 						Log.i(TAG, "sending " + boardUpdate.getPointsDrawn().size() + " points to " + user);
@@ -250,6 +262,7 @@ public class Connector {
 								Log.e(TAG, "failed to send board update: " + e);
 								e.printStackTrace();
 								--retriesLeft;
+								Log.w(TAG, retriesLeft+" retries left");
 								try {
 									Thread.sleep(1000);
 								} catch (InterruptedException e1) {

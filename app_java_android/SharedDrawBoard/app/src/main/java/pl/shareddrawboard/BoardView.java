@@ -128,11 +128,11 @@ public class BoardView extends View implements View.OnTouchListener {
 				addPoint(new Point(event.getX()/fieldSize, event.getY()/fieldSize));
 				break;
 			case MotionEvent.ACTION_UP: case MotionEvent.ACTION_POINTER_UP:
-				Log.i(TAG, "UP: "+event.toString());
+				//Log.i(TAG, "UP: "+event.toString());
 				if(connector != null) {
 					connector.sendBoardUpdate(boardUpdate);
 				} else {
-					Log.e(TAG, "DISCONNECTED KURWA");
+					Log.e(TAG, "NETWORK DISCONNECTED");
 				}
 				boardUpdate = null;
 				break;
