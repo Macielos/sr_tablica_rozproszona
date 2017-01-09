@@ -7,6 +7,9 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Networking.Sockets;
+using Windows.UI.Core;
+using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -14,6 +17,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using CloudBoard.Uwp.Services;
+using IotWeb.Server;
 
 namespace CloudBoard.Uwp
 {
@@ -22,6 +27,8 @@ namespace CloudBoard.Uwp
     /// </summary>
     sealed partial class App : Application
     {
+        public const int ServerPort = 8234;
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -30,7 +37,15 @@ namespace CloudBoard.Uwp
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            Server = new HttpServer(ServerPort);
+            Server.AddWebSocketRequestHandler("/", new WebsocketHandler());
+            Server.Start();
+            Instance = this;
         }
+
+        public App Instance { get; }
+
+        private HttpServer Server { get; }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -55,11 +70,16 @@ namespace CloudBoard.Uwp
                 rootFrame = new Frame();
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
+                rootFrame.Navigated += OnNavigated;
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
                     //TODO: Load state from previously suspended application
                 }
+
+                SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+                SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
+                    rootFrame.CanGoBack ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Collapsed;
 
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
@@ -72,10 +92,53 @@ namespace CloudBoard.Uwp
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    rootFrame.Navigate(typeof(Views.BoardListPage), e.Arguments);
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
+                Window.Current.CoreWindow.PointerReleased += CoreWindow_PointerReleased;
+            }
+        }
+
+        private static void OnNavigated(object sender, NavigationEventArgs e)
+        {
+            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
+                ((Frame)sender).CanGoBack ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Collapsed;
+        }
+
+        public event EventHandler<NavigateBackRequestedEventArgs> BackRequested;
+        
+        /// <returns>True if handled.</returns>
+        private bool HandleBackRequest()
+        {
+            var navArgs = new NavigateBackRequestedEventArgs();
+            BackRequested?.Invoke(this, navArgs);
+            if (navArgs.Handled)
+            {
+                return true;
+            }
+            var rootFrame = Window.Current.Content as Frame;
+            if (rootFrame == null || !rootFrame.CanGoBack)
+            {
+                return false;
+            }
+            rootFrame.GoBack();
+            return true;
+        }
+
+        private void OnBackRequested(object sender, BackRequestedEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                e.Handled = HandleBackRequest();
+            }
+        }
+
+        private void CoreWindow_PointerReleased(CoreWindow sender, PointerEventArgs args)
+        {
+            if (args.CurrentPoint.Properties.PointerUpdateKind == PointerUpdateKind.XButton1Released)
+            {
+                args.Handled = HandleBackRequest() || args.Handled;
             }
         }
 
@@ -102,5 +165,10 @@ namespace CloudBoard.Uwp
             //TODO: Save application state and stop any background activity
             deferral.Complete();
         }
+    }
+
+    public class NavigateBackRequestedEventArgs
+    {
+        public bool Handled { get; set; }
     }
 }

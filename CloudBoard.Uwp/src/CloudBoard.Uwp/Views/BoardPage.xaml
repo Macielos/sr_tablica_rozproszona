@@ -1,0 +1,38 @@
+﻿<Page
+    x:Class="CloudBoard.Uwp.Views.BoardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CloudBoard.Uwp.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel>
+                <TextBlock Style="{ThemeResource HeaderTextBlockStyle}" Text="CloudBoard" />
+                <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.BoardHost.Board.Name, Mode=OneWay}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.BoardHost.IpAddress, Mode=OneWay}" />
+                    <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="(you)" Grid.Column="2" Visibility="{x:Bind ViewModel.IsHostedLocally}"/>
+                </Grid>
+            </StackPanel>
+            <Grid Grid.Row="1">
+                <Canvas x:Name="BoardCanvas"></Canvas>
+            </Grid>
+        </Grid>
+        <ContentDialog Title="Connecting" SecondaryButtonText="Cancel">
+            <ProgressRing IsActive="True"/>
+        </ContentDialog>
+    </Grid>
+</Page>
