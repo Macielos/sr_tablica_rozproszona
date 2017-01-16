@@ -14,9 +14,22 @@ public class Board {
 	private int height;
 	private int[][] board;
 
-	public Board(int width, int height) {
+	private String name;
+	private String ip;
+	private String id;
+
+	public Board(String name, String ip, String id) {
+		this(name, ip, id, 200, 150);
+	}
+
+	public Board(String name, String ip, String id, int width, int height) {
+		this.name = name;
+		this.ip = ip;
+		this.id = id;
+
 		this.width = width;
 		this.height = height;
+
 		board = new int[height][];
 		for (int j = 0; j < height; ++j) {
 			board[j] = new int[width];

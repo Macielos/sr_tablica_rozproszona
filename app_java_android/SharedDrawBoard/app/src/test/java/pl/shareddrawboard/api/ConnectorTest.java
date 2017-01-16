@@ -28,21 +28,4 @@ public class ConnectorTest {
 		PowerMockito.mockStatic(Log.class);
 		//PowerMockito.wh
 	}
-
-	@Test
-	public void testSendBoardUpdate() throws Exception {
-		String file = "testSendBoardUpdate.txt";
-
-		FileOutputStream fileOutputStream = new FileOutputStream(file);
-		FileInputStream fileInputStream = new FileInputStream(file);
-
-		Connector connector = new Connector("abc", 12345, "qwerty", null, false);
-
-		String expectedTestString = "dfckldfjvklgjvkrgvjkrgjvkrgfjvkgj";
-		connector.writeString(fileOutputStream, expectedTestString);
-
-		String readTestString = connector.readString(fileInputStream);
-
-		Assert.assertEquals(expectedTestString, readTestString);
-	}
 }

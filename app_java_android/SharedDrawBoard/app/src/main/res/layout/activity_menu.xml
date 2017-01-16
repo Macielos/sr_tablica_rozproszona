@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/activity_menu"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:paddingBottom="@dimen/activity_vertical_margin"
+	android:paddingLeft="@dimen/activity_horizontal_margin"
+	android:paddingRight="@dimen/activity_horizontal_margin"
+	android:paddingTop="@dimen/activity_vertical_margin"
+	tools:context="pl.shareddrawboard.MenuActivity"
+	app:layout_collapseParallaxMultiplier="0.9">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+
+		<Button
+			android:id="@+id/create"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="New board"/>
+
+		<LinearLayout
+			android:id="@+id/create_details"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+
+			<TextView
+				android:text="Enter board name"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/create_name_label"/>
+
+			<EditText
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="textPersonName"
+				android:ems="10"
+				android:id="@+id/create_name"
+				style="@style/Widget.AppCompat.EditText"
+				/>
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:paddingLeft="50dp"
+				android:paddingBottom="10dp"
+				android:paddingTop="20dp">
+
+				<Button
+					android:id="@+id/create_button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="Create"/>
+			</RelativeLayout>
+
+		</LinearLayout>
+
+		<Button
+			android:id="@+id/open"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="Existing board"/>
+
+		<LinearLayout
+			android:id="@+id/open_details"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+		</LinearLayout>
+
+		<Button
+			android:id="@+id/quit"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="Quit"/>
+
+	</LinearLayout>
+
+</ScrollView>

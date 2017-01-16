@@ -7,9 +7,9 @@ import android.widget.EditText;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class BoardActivity extends AppCompatActivity {
 
-	private static final String TAG = MainActivity.class.getSimpleName();
+	private static final String TAG = BoardActivity.class.getSimpleName();
 
 	@Bind(R.id.boardName)
 	EditText boardName;
@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_board);
 		ButterKnife.bind(this);
 
 	}

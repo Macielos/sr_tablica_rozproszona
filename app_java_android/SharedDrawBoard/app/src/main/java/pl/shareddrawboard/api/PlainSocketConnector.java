@@ -31,9 +31,11 @@ import pl.shareddrawboard.domain.BoardUpdate;
 
 /**
  * Created by Arjan on 29.12.2016.
+ *
+ * stara impl na socketach, potem sie wywali
  */
-
-public class Connector {
+@Deprecated
+public class PlainSocketConnector {
 
 	private class User {
 		private final String host;
@@ -126,7 +128,7 @@ public class Connector {
 		}
 	}
 
-	private static final String TAG = Connector.class.getSimpleName();
+	private static final String TAG = PlainSocketConnector.class.getSimpleName();
 
 	private static final String CONNECTION_ERROR = "did not find ip, probably not connected to the internet";
 	private static final int DEFAULT_PORT = 28000;
@@ -137,7 +139,7 @@ public class Connector {
 	private final User user3 = new User("10.0.2.15", DEFAULT_PORT, "qwerty"); //192.168.1.110
 
 	//tylko do testow, poki nie dziala serwer do znajdowania userow
-	private final List<User> allUsers = Arrays.asList(user1, user2, user3);
+	private final List<User> allUsers = Arrays.asList(/*user1, user2, */user3);
 
 	private final User me;
 
@@ -160,11 +162,11 @@ public class Connector {
 		return new ThreadPoolExecutor(8, 8, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>());
 	}
 
-	public Connector(String name, Board board) throws ConnectException {
+	public PlainSocketConnector(String name, Board board) throws ConnectException {
 		this(getIP(), DEFAULT_PORT, name, board, true);
 	}
 
-	public Connector(String host, int port, String name, Board board, boolean log) {
+	public PlainSocketConnector(String host, int port, String name, Board board, boolean log) {
 		this.board = board;
 		this.me = new User(host, port, name);
 		this.log = log;

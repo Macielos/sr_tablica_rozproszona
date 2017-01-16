@@ -13,7 +13,7 @@ import pl.shareddrawboard.domain.Point;
 
 public class JsonSerializer {
 
-	public String toJson(String sender, BoardUpdate boardUpdate) throws JSONException {
+	public static String toJson(String sender, BoardUpdate boardUpdate) throws JSONException {
 		JSONObject baseJsonObject = baseJson("draw", sender);
 		JSONObject boardUpdateJsonObject = baseJsonObject.getJSONObject("args");
 		JSONArray jsonPoints = new JSONArray();
@@ -29,7 +29,7 @@ public class JsonSerializer {
 		return baseJsonObject.toString();
 	}
 
-	private JSONObject baseJson(String action, String sender) throws JSONException {
+	private static JSONObject baseJson(String action, String sender) throws JSONException {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("action", action);
 		jsonObject.put("sender", sender);
@@ -37,7 +37,7 @@ public class JsonSerializer {
 		return jsonObject;
 	}
 
-	public BoardUpdate fromJson(JSONObject jsonObject) throws JSONException {
+	public static BoardUpdate fromJson(JSONObject jsonObject) throws JSONException {
 		JSONObject boardUpdateJsonObject = jsonObject.getJSONObject("args");
 		BoardUpdate boardUpdate = new BoardUpdate(boardUpdateJsonObject.getInt("brushColor"), boardUpdateJsonObject.getInt("brushSize"));
 		JSONArray jsonPoints = boardUpdateJsonObject.getJSONArray("points");

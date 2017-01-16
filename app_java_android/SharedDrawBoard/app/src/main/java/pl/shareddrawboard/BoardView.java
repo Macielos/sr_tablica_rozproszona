@@ -11,11 +11,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.net.ConnectException;
-
+import pl.shareddrawboard.api.DrawboardClientPool;
+import pl.shareddrawboard.api.DrawboardServer;
 import pl.shareddrawboard.domain.Board;
 import pl.shareddrawboard.domain.BoardUpdate;
-import pl.shareddrawboard.api.Connector;
 import pl.shareddrawboard.domain.Point;
 import pl.shareddrawboard.domain.StateContainer;
 
@@ -28,7 +27,8 @@ public class BoardView extends View implements View.OnTouchListener {
 
 	private Board board;
 	private BoardUpdate boardUpdate;
-	private Connector connector;
+	private DrawboardServer server;
+	private DrawboardClientPool drawboardClientPool;
 
 	int fieldSize = 5;
 	int currentColor = Color.BLACK;
@@ -59,10 +59,13 @@ public class BoardView extends View implements View.OnTouchListener {
 		paint = new Paint();
 		setBackgroundColor(Color.LTGRAY);
 
-		connector = StateContainer.instance.getConnector();
+		server = StateContainer.instance.getServer();
 		board = StateContainer.instance.getBoard();
+		drawboardClientPool = StateContainer.instance.getClientPool();
 
-		connector.setView(this);
+		if(server != null) {
+			server.setView(this);
+		}
 
 		setOnTouchListener(this);
 
@@ -127,12 +130,12 @@ public class BoardView extends View implements View.OnTouchListener {
 				break;
 			case MotionEvent.ACTION_UP: case MotionEvent.ACTION_POINTER_UP:
 				//Log.i(TAG, "UP: "+event.toString());
-				if(connector != null) {
-					connector.sendBoardUpdate(boardUpdate);
-				} else {
-					Log.e(TAG, "NETWORK DISCONNECTED");
+				BoardUpdate toSend;
+				synchronized (this) {
+					toSend = boardUpdate;
+					boardUpdate = null;
 				}
-				boardUpdate = null;
+				drawboardClientPool.sendBoardUpdate(toSend);
 				break;
 		}
 		return true;
