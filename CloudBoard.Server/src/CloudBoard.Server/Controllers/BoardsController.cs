@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CloudBoard.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CloudBoard.Server.Controllers
 {
@@ -13,8 +14,7 @@ namespace CloudBoard.Server.Controllers
     [Route("api/[controller]")]
     public class BoardsController : Controller
     {
-        private static List<BoardHost> BoardHosts { get; } = new List<BoardHost>();
-        private static Dictionary<string, DateTime> LastUpdateTimestamps { get; } = new Dictionary<string, DateTime>();
+        private static ConcurrentDictionary<string, HostEntry> BoardHosts { get; } = new ConcurrentDictionary<string, HostEntry>();
 
         /// <summary>
         /// Gets all board hosts registered on server.
@@ -23,7 +23,8 @@ namespace CloudBoard.Server.Controllers
         [HttpGet]
         public IEnumerable<BoardHost> Get()
         {
-            return BoardHosts;
+            CheckTimestamps();
+            return BoardHosts.ToArray().Select(x => x.Value.Host).OrderBy(x => x.Board.Name);
         }
         
         /// <summary>
@@ -32,10 +33,15 @@ namespace CloudBoard.Server.Controllers
         /// <param name="id">Board host id.</param>
         /// <returns>Board host data.</returns>
         [HttpGet("{id}", Name = "GetBoard")]
+        [ProducesResponseType(typeof(BoardHost), 200)]
+        [ProducesResponseType(typeof(ErrorMessage), 404)]
         public IActionResult Get(string id)
         {
-            var foundHost = BoardHosts.Find(host => host.Board?.Id == id);
-            return foundHost != null ? (IActionResult) new ObjectResult(foundHost) : NotFound();
+            CheckTimestamps();
+            HostEntry foundHost;
+            return BoardHosts.TryGetValue(id, out foundHost)
+                ? new ObjectResult(foundHost.Host)
+                : NotFound(new ErrorMessage { Error = "No host with given id." });
         }
 
         // POST api/boards
@@ -46,8 +52,13 @@ namespace CloudBoard.Server.Controllers
         /// <returns>Newly created board data.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(BoardHost), 201)]
+        [ProducesResponseType(typeof(ModelStateDictionary), 400)]
         public IActionResult Create([FromBody]BoardHostCreate newHost)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var id = Guid.NewGuid().ToString();
             var host = new BoardHost
             {
@@ -58,7 +69,7 @@ namespace CloudBoard.Server.Controllers
                     Name = newHost.BoardName
                 }
             };
-            AddHost(host);
+            UpdateHost(host);
             return CreatedAtRoute("GetBoard", new {id}, host);
         }
 
@@ -68,12 +79,17 @@ namespace CloudBoard.Server.Controllers
         /// <param name="host">Updated data.</param>
         [HttpPut]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ModelStateDictionary), 400)]
+        [ProducesResponseType(typeof(ErrorMessage), 404)]
         public IActionResult Update([FromBody]BoardHost host)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (!Exists(host.Board.Id))
             {
-                return NotFound();
+                return NotFound(new ErrorMessage {Error = "No host with given id."});
             }
             UpdateHost(host);
             return NoContent();
@@ -81,31 +97,44 @@ namespace CloudBoard.Server.Controllers
 
         private static bool Exists(string id)
         {
-            return BoardHosts.Any(x => x.Board.Id == id);
+            return BoardHosts.ContainsKey(id);
         }
-
-        private static void AddHost(BoardHost host)
-        {
-            BoardHosts.Add(host);
-            LastUpdateTimestamps[host.Board.Id] = DateTime.Now;
-            CheckTimestamps();
-        }
-
+        
         private static void CheckTimestamps()
         {
             var threshold = DateTime.Now - TimeSpan.FromMinutes(5);
-            var inactiveHosts = LastUpdateTimestamps.Where(pair => pair.Value < threshold).Select(pair => pair.Key).ToList();
+            var inactiveHosts = BoardHosts.Values
+                .Where(entry => entry.LastUpdateTimestamp < threshold)
+                .Select(entry => entry.Host.Board.Id)
+                .ToList();
             foreach (var inactiveId in inactiveHosts)
             {
-                LastUpdateTimestamps.Remove(inactiveId);
-                BoardHosts.RemoveAll(x => x.Board.Id == inactiveId);
+                HostEntry entry;
+                BoardHosts.TryRemove(inactiveId, out entry);
             }
         }
 
         private static void UpdateHost(BoardHost host)
         {
-            BoardHosts.RemoveAll(x => x.Board.Id == host.Board.Id);
-            AddHost(host);
+            BoardHosts[host.Board.Id] = new HostEntry {Host = host, LastUpdateTimestamp = DateTime.Now};
+        }
+
+        /// <summary>
+        /// Contains some information as to whether request failed. Not user-friendly, use for debugging and development only.
+        /// </summary>
+        public class ErrorMessage
+        {
+            /// <summary>
+            /// Debug/development error message
+            /// </summary>
+            public string Error { get; set; }
+        }
+
+        private struct HostEntry
+        {
+            public DateTime LastUpdateTimestamp { get; set; }
+
+            public BoardHost Host { get; set; }
         }
     }
 }
