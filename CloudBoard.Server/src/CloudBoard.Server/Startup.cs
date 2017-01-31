@@ -14,6 +14,7 @@ using Swashbuckle.Swagger.Model;
 
 namespace CloudBoard.Server
 {
+#pragma warning disable 1591 // Missing XML comment  - unneeded on host logic
     public class Startup
     {
         public Startup(IHostingEnvironment env)
@@ -38,6 +39,8 @@ namespace CloudBoard.Server
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
+
             // Add framework services.
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -67,9 +70,7 @@ namespace CloudBoard.Server
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseApplicationInsightsRequestTelemetry();
-
-            app.UseApplicationInsightsExceptionTelemetry();
+            app.UseCors(builder => builder.AllowAnyOrigin());
 
             app.UseMvc();
 

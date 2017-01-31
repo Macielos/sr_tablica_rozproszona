@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 
 namespace CloudBoard.Server
 {
+#pragma warning disable 1591 // Missing XML comment  - unneeded on host logic
     public class Program
     {
         public static void Main(string[] args)
