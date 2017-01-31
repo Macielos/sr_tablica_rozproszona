@@ -14,6 +14,7 @@ namespace CloudBoard.Uwp.ViewModels
     public class BoardListViewModel : ViewModelBase
     {
         private ImmutableArray<ImmutableBoardHost> _hosts = ImmutableArray<ImmutableBoardHost>.Empty;
+        private bool _isInitialized;
 
         public BoardListViewModel(Page page)
         {
@@ -27,6 +28,12 @@ namespace CloudBoard.Uwp.ViewModels
         {
             get { return _hosts; }
             set { Set(ref _hosts, value); }
+        }
+
+        public bool IsInitialized
+        {
+            get { return _isInitialized; }
+            private set { Set(ref _isInitialized, value); }
         }
 
         private Page ParentPage { get; }
@@ -53,6 +60,7 @@ namespace CloudBoard.Uwp.ViewModels
         }
         private void UpdateHosts(ImmutableArray<ImmutableBoardHost> hosts)
         {
+            IsInitialized = true;
             // check if lists differ
             if (hosts.Length != Hosts.Length || hosts.Except(Hosts).Any())
             {

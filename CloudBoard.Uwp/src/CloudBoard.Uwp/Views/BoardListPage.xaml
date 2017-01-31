@@ -25,16 +25,22 @@
                 <TextBlock Style="{ThemeResource HeaderTextBlockStyle}" Text="CloudBoard" />
             </StackPanel>
             <Grid Grid.Row="1">
-                <ProgressRing Visibility="{x:Bind ViewModel.Hosts.IsEmpty, Mode=OneWay}"
-                              IsActive="{x:Bind ViewModel.Hosts.IsEmpty, Mode=OneWay}"
+                <ProgressRing Visibility="{x:Bind ToInverseVisibility(ViewModel.IsInitialized), Mode=OneWay}"
+                              IsActive="{x:Bind Not(ViewModel.IsInitialized), Mode=OneWay}"
                               Height="100"
                               Width="100"/>
                 <ListView IsItemClickEnabled="True"
                           ItemClick="{x:Bind ViewModel.HostClicked}"
                           ItemsSource="{x:Bind ViewModel.Hosts, Mode=OneWay}"
-                          Visibility="{x:Bind InverseVisibility(ViewModel.Hosts.IsEmpty), Mode=OneWay}">
+                          Visibility="{x:Bind ViewModel.IsInitialized, Mode=OneWay}">
                     <ListView.Header>
-                        <TextBlock Style="{ThemeResource TitleTextBlockStyle}" Text="Active boards" />
+                        <StackPanel>
+                            <TextBlock Style="{ThemeResource TitleTextBlockStyle}" Text="Active boards" />
+                            <TextBlock
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Visibility="{x:Bind ViewModel.Hosts.IsEmpty, Mode=OneWay}"
+                                Text="No boards on server, use 'Create' to open new one."/>
+                        </StackPanel>
                     </ListView.Header>
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">

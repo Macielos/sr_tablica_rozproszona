@@ -8,12 +8,12 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid Margin="12">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <StackPanel>
+            <StackPanel Margin="12">
                 <TextBlock Style="{ThemeResource HeaderTextBlockStyle}" Text="CloudBoard" />
                 <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.BoardHost.Board.Name, Mode=OneWay}" />
                 <Grid>
@@ -27,9 +27,18 @@
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="(you)" Grid.Column="2" Visibility="{x:Bind ViewModel.IsHostedLocally}"/>
                 </Grid>
             </StackPanel>
-            <Grid Grid.Row="1">
-                <Canvas x:Name="BoardCanvas"></Canvas>
-            </Grid>
+            <ScrollViewer
+                Grid.Row="1"
+                ZoomMode="Enabled"
+                MinZoomFactor="1"
+                HorizontalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Enabled"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Enabled">
+                <Grid Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}">
+                    <InkCanvas x:Name="BoardCanvas" />
+                </Grid>
+            </ScrollViewer>
         </Grid>
         <ContentDialog Title="Connecting" SecondaryButtonText="Cancel">
             <ProgressRing IsActive="True"/>

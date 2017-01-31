@@ -20,7 +20,9 @@ namespace CloudBoard.Uwp.Views
 
         public BoardListViewModel ViewModel { get; }
 
-        public Visibility InverseVisibility(bool value) => !value ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ToInverseVisibility(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
+
+        public bool Not(bool value) => !value;
 
         private async void CreateButton_OnClick(object sender, RoutedEventArgs e)
         {
