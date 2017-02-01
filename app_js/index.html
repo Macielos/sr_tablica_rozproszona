@@ -8,11 +8,11 @@
     <meta name="description" content="Painting">
     <meta name="author" content="Damian Moźniak">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="js/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
     <div class="container">
@@ -23,12 +23,14 @@
                     <button id="clear" class="btn btn-danger">Wyczyść</button>
                 </div>
             </div>
+            <div class="col-lg-12">
+            	<form method="POST" action="https://srcloudboardserver.azurewebsites.net/api/Boards">
+                
+                	<button id="makeBoard">Tworz Tablice</button>
+                </form>
+            </div>
         </div>
     </div>
-
     <script type="text/javascript" src="js/scripts.js"></script>
-    <!--<script type="text/javascript" src="jquery.event.drag-2.2/jquery.event.drag-2.2.js"></script>-->
-    <script>
-    </script>
 </body>
 </html>
