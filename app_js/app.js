@@ -10,6 +10,8 @@ app.use(express.static(__dirname + '/'));
 server.listen(process.env.PORT || 3000);
 console.log('Server running......');
 
+
+
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
@@ -28,6 +30,8 @@ io.sockets.on('connection', function(socket){
         socket.broadcast.emit('draw', {
             x: data.x,
             y: data.y,
+			oldX: data.oldX,
+	  		oldY: data.oldY,
             type: data.type
         });
         console.log(data);
