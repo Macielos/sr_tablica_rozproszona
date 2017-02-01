@@ -16,6 +16,16 @@ namespace CloudBoard.Server.Controllers
     {
         private static ConcurrentDictionary<string, HostEntry> BoardHosts { get; } = new ConcurrentDictionary<string, HostEntry>();
 
+        private static BoardHost StaticServerHost { get; } = new BoardHost
+        {
+            IpAddress = "http://sr-94933.onmodulus.net:80/",
+            Board = new Board
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Default board"
+            }
+        };
+
         /// <summary>
         /// Gets all board hosts registered on server.
         /// </summary>
@@ -24,9 +34,11 @@ namespace CloudBoard.Server.Controllers
         public IEnumerable<BoardHost> Get()
         {
             CheckTimestamps();
-            return BoardHosts.ToArray().Select(x => x.Value.Host).OrderBy(x => x.Board.Name);
+            var list = BoardHosts.ToArray().Select(x => x.Value.Host).OrderBy(x => x.Board.Name).ToList();
+            list.Add(StaticServerHost);
+            return list;
         }
-        
+
         /// <summary>
         /// Gets board host with given id.
         /// </summary>
