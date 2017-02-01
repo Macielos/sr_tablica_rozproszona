@@ -35,7 +35,7 @@ namespace CloudBoard.Server.Controllers
         {
             CheckTimestamps();
             var list = BoardHosts.ToArray().Select(x => x.Value.Host).OrderBy(x => x.Board.Name).ToList();
-            list.Add(StaticServerHost);
+            list.Insert(0, StaticServerHost);
             return list;
         }
 
