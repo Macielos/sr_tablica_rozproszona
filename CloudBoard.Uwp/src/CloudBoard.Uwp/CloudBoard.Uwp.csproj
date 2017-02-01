@@ -95,11 +95,20 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\Board.cs" />
     <Compile Include="Models\BoardHost.cs" />
+    <Compile Include="Models\BoardHostCreate.cs" />
+    <Compile Include="Models\ImmutableBoard.cs" />
+    <Compile Include="Models\ImmutableBoardHost.cs" />
+    <Compile Include="Models\ImmutableExtensions.cs" />
     <Compile Include="Services\BoardClientService.cs" />
-    <Compile Include="Services\BoardServerService.cs" />
+    <Compile Include="Services\BoardListService.cs" />
+    <Compile Include="Services\DebugLogPrinter.cs" />
     <Compile Include="Services\IBoardHostApi.cs" />
-    <Compile Include="Services\WebsocketHandler.cs" />
+    <Compile Include="Services\LocalWebsocketServerProvider.cs" />
+    <Compile Include="Services\Logger.cs" />
+    <Compile Include="Services\LogSink.cs" />
+    <Compile Include="Services\WebsocketServerRequestHandler.cs" />
     <Compile Include="ViewModels\BoardListViewModel.cs" />
     <Compile Include="ViewModels\BoardViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />

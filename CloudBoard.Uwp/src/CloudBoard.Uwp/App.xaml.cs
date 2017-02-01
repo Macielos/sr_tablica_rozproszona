@@ -7,7 +7,6 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Networking.Sockets;
 using Windows.UI.Core;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
@@ -27,25 +26,36 @@ namespace CloudBoard.Uwp
     /// </summary>
     sealed partial class App : Application
     {
-        public const int ServerPort = 8234;
-
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
         {
+            Instance = this;
+            LogSink = new LogSink();
+            DebugLogPrinter.SubscribeTo(LogSink);
+            Logger = new Logger(nameof(App));
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-            Server = new HttpServer(ServerPort);
-            Server.AddWebSocketRequestHandler("/", new WebsocketHandler());
-            Server.Start();
-            Instance = this;
+            Server = LocalWebsocketServerProvider.CreateServer();
+            try
+            {
+                Server.Start();
+            }
+            catch (Exception e)
+            {
+                Logger.Error?.Ex(e, "Couldn't start http server.");
+            }
         }
 
-        public App Instance { get; }
+        private Logger Logger { get; }
+
+        public static App Instance { get; private set; }
 
         private HttpServer Server { get; }
+
+        public LogSink LogSink { get; }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -163,6 +173,7 @@ namespace CloudBoard.Uwp
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
+            Logger.Info?.Msg("suspending");
             deferral.Complete();
         }
     }

@@ -15,19 +15,28 @@ namespace CloudBoard.Uwp.ViewModels
     {
         private ImmutableArray<ImmutableBoardHost> _hosts = ImmutableArray<ImmutableBoardHost>.Empty;
         private bool _isInitialized;
+        private string _newBoardName;
 
         public BoardListViewModel(Page page)
         {
             ParentPage = page;
-            ServerService.SubscribeBoards(UpdateHosts).Start();
+            BoardListService.SubscribeBoards(UpdateHosts).Start();
         }
 
-        private BoardServerService ServerService { get; } = new BoardServerService();
+        private Page ParentPage { get; }
+
+        private BoardListService BoardListService { get; } = new BoardListService();
+
+        public string NewBoardName
+        {
+            get { return _newBoardName; }
+            set { Set(ref _newBoardName, value); }
+        }
 
         public ImmutableArray<ImmutableBoardHost> Hosts
         {
             get { return _hosts; }
-            set { Set(ref _hosts, value); }
+            private set { Set(ref _hosts, value); }
         }
 
         public bool IsInitialized
@@ -36,28 +45,37 @@ namespace CloudBoard.Uwp.ViewModels
             private set { Set(ref _isInitialized, value); }
         }
 
-        private Page ParentPage { get; }
-
         public void HostClicked(object sender, ItemClickEventArgs e)
         {
             var host = (ImmutableBoardHost)e.ClickedItem;
             OpenBoard(host);
         }
 
+        public async void UpdateHostList()
+        {
+            await BoardListService.UpdateBoardsAsync(UpdateHosts);
+        }
+
         public void OpenBoard(ImmutableBoardHost host, bool isHostedLocally = false)
         {
-            ParentPage.Frame.Navigate(typeof(BoardPage), new BoardViewModel.LoadArgs()
+            ParentPage.Frame.Navigate(typeof(BoardPage), new BoardViewModel.LoadArgs
             {
                 Host = host,
                 IsHostedLocally = isHostedLocally
             });
         }
 
-        public async Task<ImmutableBoardHost> CreateBoardAsync(string name)
+        public async Task CreateBoardAsync()
         {
-            var host = await ServerService.CreateBoardAsync(name);
-            return host;
+            if (string.IsNullOrWhiteSpace(NewBoardName))
+            {
+                return;
+            }
+            var host = await BoardListService.CreateBoardAsync(NewBoardName);
+            // TODO host locally, navigate etc.
+            OpenBoard(host, isHostedLocally:true);
         }
+
         private void UpdateHosts(ImmutableArray<ImmutableBoardHost> hosts)
         {
             IsInitialized = true;

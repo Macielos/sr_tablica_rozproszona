@@ -4,19 +4,22 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Networking;
 using Windows.UI.Xaml;
 using CloudBoard.Uwp.Models;
 using Refit;
-using Windows.Networking.Connectivity;
 
 namespace CloudBoard.Uwp.Services
 {
-    public class BoardServerService
+    /// <summary>
+    /// Wraps operations performed on Board list server (room server).
+    /// </summary>
+    public class BoardListService
     {
-        public BoardServerService()
+        public const string BoardsApiUri = "http://srcloudboardserver.azurewebsites.net/api";
+
+        public BoardListService()
         {
-            Api = RestService.For<IBoardHostApi>("http://srcloudboardserver.azurewebsites.net/api");
+            Api = RestService.For<IBoardHostApi>(BoardsApiUri);
         }
 
         private IBoardHostApi Api { get; }
@@ -39,14 +42,21 @@ namespace CloudBoard.Uwp.Services
             callback(boards.Select(x => x.ToImmutable()).ToImmutableArray());
         }
 
+        public async Task UpdateHostAsync(ImmutableBoardHost host)
+        {
+            var currentUri = LocalWebsocketServerProvider.GetLocalServerUri();
+            var currentHost = host.ToMutable();
+            currentHost.IpAddress = currentUri.ToString();
+            await Api.UpdateAsync(currentHost);
+        }
+
         public async Task<ImmutableBoardHost> CreateBoardAsync(string name)
         {
-            var hostNames = NetworkInformation.GetHostNames();
-            var hostName = hostNames.FirstOrDefault(x => x.Type == HostNameType.Ipv4);
+            var uri = LocalWebsocketServerProvider.GetLocalServerUri();
             var host = await Api.CreateAsync(new BoardHostCreate
             {
                 BoardName = name,
-                IpAddress = $"http://{hostName}:{App.ServerPort}/"
+                IpAddress = uri.ToString()
             });
             return host.ToImmutable();
         }

@@ -24,14 +24,6 @@ namespace CloudBoard.Uwp.Views
 
         public bool Not(bool value) => !value;
 
-        private async void CreateButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            var result = await CreateBoardDialog.ShowAsync().AsTask();
-            if (result == ContentDialogResult.Primary)
-            {
-                var host = await ViewModel.CreateBoardAsync(BoardNameTextBox.Text);
-                ViewModel.OpenBoard(host, isHostedLocally:true);
-            }
-        }
+        public bool IsNotNullOrWhiteSpace(string s) => !string.IsNullOrWhiteSpace(s);
     }
 }

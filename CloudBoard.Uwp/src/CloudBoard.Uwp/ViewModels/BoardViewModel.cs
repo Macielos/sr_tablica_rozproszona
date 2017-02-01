@@ -59,7 +59,10 @@ namespace CloudBoard.Uwp.ViewModels
 
         public async Task ConnectToHost()
         {
-            var socket = await BoardClientService.ConnectToHostAsync(BoardHost);
+            using (var service = await BoardClientService.CreateServiceAsync(BoardHost))
+            {
+                await service.SendMessageAsync("Hello world!");
+            }
         }
 
         public class LoadArgs

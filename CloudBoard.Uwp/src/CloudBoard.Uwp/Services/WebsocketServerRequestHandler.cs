@@ -7,13 +7,22 @@ using IotWeb.Common.Http;
 
 namespace CloudBoard.Uwp.Services
 {
-    public class WebsocketHandler : IWebSocketRequestHandler
+    public class WebsocketServerRequestHandler : IWebSocketRequestHandler
     {
+        private const string Protocol = "echo";
+
+        public WebsocketServerRequestHandler()
+        {
+            Logger = new Logger(nameof(WebsocketServerRequestHandler));
+        }
+
+        private Logger Logger { get; }
+
         public List<WebSocket> Clients { get; } = new List<WebSocket>();
 
         public bool WillAcceptRequest(string uri, string protocol)
         {
-            return true;
+            return protocol == Protocol;
         }
 
         public void Connected(WebSocket socket)
@@ -22,6 +31,7 @@ namespace CloudBoard.Uwp.Services
             socket.DataReceived += SocketOnDataReceived;
             socket.ConnectionClosed += webSocket =>
             {
+                Logger.Info?.Msg("Closed socket");
                 Clients.Remove(webSocket);
             };
         }
@@ -32,11 +42,19 @@ namespace CloudBoard.Uwp.Services
             {
                 return;
             }
+            Logger.Info?.Msg($"Received msg: {frame}");
             // TODO deserialize, check protocol
             foreach (var client in Clients)
             {
                 //echo
-                client.Send(frame);
+                try
+                {
+                    client.Send(frame);
+                }
+                catch (Exception e)
+                {
+                    Logger.Debug?.Ex(e, "Error sending to client.");
+                }
             }
         }
     }

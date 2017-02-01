@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:CloudBoard.Uwp"
+    xmlns:sys="using:System"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:CloudBoard.Uwp.Models"
@@ -10,7 +11,8 @@
     
     <Page.BottomAppBar>
         <CommandBar>
-            <AppBarButton x:Name="CreateButton" Label="Create room" Icon="Add"  Click="CreateButton_OnClick"/>
+            <AppBarButton x:Name="CreateButton" Label="Create room" Icon="Add"  Click="{x:Bind CreateBoardDialog.ShowAsync}"/>
+            <AppBarButton x:Name="RefreshButton" Label="Refresh list" Icon="Refresh"  Click="{x:Bind ViewModel.UpdateHostList}"/>
             <AppBarButton Label="About" Icon="Help" />
         </CommandBar>
     </Page.BottomAppBar>
@@ -62,11 +64,17 @@
                 </ListView>
             </Grid>
         </Grid>
-        <ContentDialog x:Name="CreateBoardDialog" PrimaryButtonText="Create" SecondaryButtonText="Cancel" Title="Create new board">
+        <ContentDialog
+            x:Name="CreateBoardDialog"
+            Title="Create new board"
+            PrimaryButtonText="Create"
+            PrimaryButtonClick="{x:Bind ViewModel.CreateBoardAsync}"
+            IsPrimaryButtonEnabled="{x:Bind IsNotNullOrWhiteSpace(BoardNameTextBox.Text), Mode=OneWay}"
+            SecondaryButtonText="Cancel">
             <Grid>
                 <StackPanel>
                     <TextBlock>Board name:</TextBlock>
-                    <TextBox x:Name="BoardNameTextBox" PlaceholderText="My awesome board" />
+                    <TextBox x:Name="BoardNameTextBox" Text="{x:Bind ViewModel.NewBoardName, Mode=TwoWay}" PlaceholderText="My awesome board" />
                 </StackPanel>
             </Grid>
         </ContentDialog>
