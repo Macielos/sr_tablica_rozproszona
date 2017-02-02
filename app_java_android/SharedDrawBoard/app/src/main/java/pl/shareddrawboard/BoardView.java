@@ -35,6 +35,7 @@ public class BoardView extends View implements View.OnTouchListener {
 	int currentBrushSize = 5;
 
 	private Point previousPoint;
+	private boolean drawMode;
 
 	public BoardView(Context context) {
 		super(context);
@@ -98,12 +99,6 @@ public class BoardView extends View implements View.OnTouchListener {
 			}
 		}
 
-		//Log.i(TAG, "drawing "+boardUpdate.getPointsDrawn().size()+" points");
-
-		// Draw the text.
-		canvas.drawText("board size "+board.getWidth()+", "+board.getHeight(), 30, 120,
-				mTextPaint);
-
 	}
 
 	/**
@@ -161,5 +156,10 @@ public class BoardView extends View implements View.OnTouchListener {
 		invalidate();
 		Log.i(TAG, "adding point " + point + "of color "+boardUpdate.getBrushColor());
 
+	}
+
+	public void setDrawMode(boolean drawMode) {
+		this.drawMode = drawMode;
+		setOnTouchListener(drawMode ? this : null);
 	}
 }

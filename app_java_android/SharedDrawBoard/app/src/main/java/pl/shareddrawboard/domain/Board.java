@@ -18,10 +18,9 @@ public class Board {
 	private String name;
 	private String ip;
 	private String id;
-	private String ipAddress;
 
 	public Board(String name, String ip, String id) {
-		this(name, ip, id, 200, 150);
+		this(name, ip, id, 800, 600);
 	}
 
 	public Board(String name, String ip, String id, int width, int height) {
@@ -36,6 +35,7 @@ public class Board {
 		for (int j = 0; j < height; ++j) {
 			board[j] = new int[width];
 		}
+
 		for (int j = 0; j < height; ++j) {
 			for (int i = 0; i < width; ++i) {
 				board[j][i] = Color.WHITE;
