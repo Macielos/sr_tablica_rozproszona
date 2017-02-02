@@ -18,7 +18,7 @@ public class NetworkUtils {
 	public static final String CONNECTION_ERROR = "did not find ip, probably not connected to the internet";
 
 	public static final String SERVER_URL = "http://srcloudboardserver.azurewebsites.net/api/Boards";
-	public static final int DEFAULT_PORT = 28000;
+	public static final int DEFAULT_PORT = 3000;
 
 
 	public static String getIP() throws ConnectException {

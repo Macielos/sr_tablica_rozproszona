@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import pl.shareddrawboard.NetworkUtils;
 import pl.shareddrawboard.domain.BoardUpdate;
+import pl.shareddrawboard.domain.Point;
 
 /**
  * Created by Arjan on 15.01.2017.
@@ -36,7 +37,7 @@ public class DrawboardClientPool {
 		//temp
 		for(UserEndpoint user: UserEndpoint.allUsers) {
 			if(!isMe(user)) {
-				joinUser(user);
+				//joinUser(user);
 			} else {
 				this.myName = user.getName();
 			}
@@ -105,6 +106,20 @@ public class DrawboardClientPool {
 		String message;
 		try {
 			message = JsonSerializer.toJson(myName, boardUpdate);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return;
+		}
+		Log.i(TAG, "sending "+message.length()+" bytes to "+activeUsers.size()+" users");
+		for(UserEndpoint user: activeUsers) {
+			user.send(message);
+		}
+	}
+
+	public void send(Point point, Point previousPoint) {
+		String message;
+		try {
+			message = JsonSerializer.toJson(point.x, point.y, previousPoint.x, previousPoint.y);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return;

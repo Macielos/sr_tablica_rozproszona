@@ -34,6 +34,8 @@ public class BoardView extends View implements View.OnTouchListener {
 	int currentColor = Color.BLACK;
 	int currentBrushSize = 5;
 
+	private Point previousPoint;
+
 	public BoardView(Context context) {
 		super(context);
 		init(null, 0);
@@ -127,6 +129,7 @@ public class BoardView extends View implements View.OnTouchListener {
 			case MotionEvent.ACTION_MOVE:
 				//Log.i(TAG, "MOVE: "+event.toString());
 				addPoint(new Point(event.getX()/fieldSize, event.getY()/fieldSize));
+
 				break;
 			case MotionEvent.ACTION_UP: case MotionEvent.ACTION_POINTER_UP:
 				//Log.i(TAG, "UP: "+event.toString());
@@ -135,7 +138,7 @@ public class BoardView extends View implements View.OnTouchListener {
 					toSend = boardUpdate;
 					boardUpdate = null;
 				}
-				drawboardClientPool.sendBoardUpdate(toSend);
+				//drawboardClientPool.sendBoardUpdate(toSend);
 				break;
 		}
 		return true;
@@ -150,7 +153,11 @@ public class BoardView extends View implements View.OnTouchListener {
 		}
 
 		board.update(point, boardUpdate.getBrushSize(), boardUpdate.getBrushColor());
-		boardUpdate.addPointDrawn(point);
+
+		drawboardClientPool.send(point, previousPoint == null ? point : previousPoint);
+		previousPoint = point;
+
+		//boardUpdate.addPointDrawn(point);
 		invalidate();
 		Log.i(TAG, "adding point " + point + "of color "+boardUpdate.getBrushColor());
 

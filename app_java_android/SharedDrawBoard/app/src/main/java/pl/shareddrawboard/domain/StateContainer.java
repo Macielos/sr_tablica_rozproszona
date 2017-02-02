@@ -1,11 +1,14 @@
 package pl.shareddrawboard.domain;
 
 import java.net.ConnectException;
-import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import pl.shareddrawboard.api.DrawboardClientPool;
 import pl.shareddrawboard.api.DrawboardServer;
-import pl.shareddrawboard.api.BoardRetriever;
+import pl.shareddrawboard.api.BoardServerConnector;
 
 /**
  * Created by Arjan on 08.01.2017.
@@ -19,7 +22,8 @@ public class StateContainer {
 	private Board board;
 	private DrawboardServer server;
 	private DrawboardClientPool clientPool;
-	private BoardRetriever boardRetriever;
+	private BoardServerConnector boardServerConnector;
+	private Set<Board> boardsFromServer = new HashSet<>();
 
 	public Board getBoard() {
 		return board;
@@ -33,12 +37,24 @@ public class StateContainer {
 		return clientPool;
 	}
 
-	public BoardRetriever getBoardRetriever() {
-		return boardRetriever;
+	public BoardServerConnector getBoardServerConnector() {
+		return boardServerConnector;
 	}
 
 	public void setBoard(Board board) {
 		this.board = board;
+	}
+
+	public Set<Board> getBoardsFromServer() {
+		return boardsFromServer;
+	}
+
+	public void setBoardsFromServer(Set<Board> boardsFromServer) {
+		this.boardsFromServer = boardsFromServer;
+	}
+
+	public void setServer(DrawboardServer server) {
+		this.server = server;
 	}
 
 	public static StateContainer instance = new StateContainer();
@@ -55,7 +71,7 @@ public class StateContainer {
 
 		clientPool = new DrawboardClientPool(/*TODO name ustalany przy logowaniu*/null);
 
-		boardRetriever = new BoardRetriever();
+		boardServerConnector = new BoardServerConnector();
 	}
 
 }

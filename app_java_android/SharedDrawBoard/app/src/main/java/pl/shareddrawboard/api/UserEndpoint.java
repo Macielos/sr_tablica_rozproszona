@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import pl.shareddrawboard.NetworkUtils;
+import pl.shareddrawboard.domain.StateContainer;
 
 /**
  * Created by Arjan on 15.01.2017.
@@ -69,6 +70,7 @@ public class UserEndpoint {
 			@Override
 			public void onMessage(String message) {
 				Log.i(TAG, "message from server: "+message);
+				//StateContainer.instance.getBoard().update();
 			}
 
 			@Override
