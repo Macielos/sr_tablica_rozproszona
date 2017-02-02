@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using CloudBoard.Uwp.Models;
+using Newtonsoft.Json;
 using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 
 namespace CloudBoard.Uwp.Services
@@ -15,6 +16,7 @@ namespace CloudBoard.Uwp.Services
         private BoardClientService(MessageWebSocket socket, Uri serverUri)
         {
             Socket = socket;
+            SocketDataWriter = new DataWriter(Socket.OutputStream);
             ServerUri = serverUri;
             Logger = new Logger(nameof(BoardClientService));
         }
@@ -24,6 +26,8 @@ namespace CloudBoard.Uwp.Services
         private MessageWebSocket Socket { get; }
 
         public Uri ServerUri { get; }
+
+        public event EventHandler<DrawMessage> DrawMessageReceived;
         
         public static async Task<BoardClientService> CreateServiceAsync(ImmutableBoardHost host)
         {
@@ -34,25 +38,26 @@ namespace CloudBoard.Uwp.Services
             };
             var serverUri = serverUriBuilder.Uri;
             var socket = new MessageWebSocket();
-
-            // TODO actual protocol
-            socket.Control.SupportedProtocols.Add("echo");
+            
+            socket.Control.SupportedProtocols.Add(LocalWebsocketServerProvider.ServerProtocol);
             socket.Control.MessageType = SocketMessageType.Utf8;
             var service = new BoardClientService(socket, serverUri);
             await service.ConnectToHostAsync();
             return service;
         }
 
-        public async Task SendMessageAsync(string message)
+        public async Task SendMessageAsync(DrawMessage message)
         {
-            var writer = new DataWriter(Socket.OutputStream);
-            writer.WriteString(message);
-            await writer.StoreAsync();
+            var messageString = JsonConvert.SerializeObject(message);
+            SocketDataWriter.WriteString(messageString);
+            await SocketDataWriter.StoreAsync();
         }
+
+        private DataWriter SocketDataWriter { get; }
 
         public void Dispose()
         {
-            Socket.Dispose();
+            Socket?.Dispose();
         }
 
         private async Task<MessageWebSocket> ConnectToHostAsync()
@@ -74,7 +79,14 @@ namespace CloudBoard.Uwp.Services
             var reader = args.GetDataReader();
             reader.UnicodeEncoding = UnicodeEncoding.Utf8;
             var msg = reader.ReadString(reader.UnconsumedBufferLength);
-            Logger.Info?.Msg($"Received message from server '{ServerUri}': {msg}");
+            Logger.Debug?.Msg($"Received message from server '{ServerUri}': {msg}");
+            var drawMessage = JsonConvert.DeserializeObject<DrawMessage>(msg);
+            RaiseDrawMessageReceived(drawMessage);
+        }
+
+        protected virtual void RaiseDrawMessageReceived(DrawMessage e)
+        {
+            DrawMessageReceived?.Invoke(this, e);
         }
     }
 }

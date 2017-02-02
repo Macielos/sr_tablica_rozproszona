@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -39,13 +40,68 @@ namespace CloudBoard.Uwp
             this.InitializeComponent();
             this.Suspending += OnSuspending;
             Server = LocalWebsocketServerProvider.CreateServer();
+            ServerKeepAliveTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(10)
+            };
+            ServerKeepAliveTimer.Tick += ServerKeepAliveTimer_Tick;
+        }
+
+        public Func<Task> KeepAliveAsyncAction { get; set; }
+
+        private DispatcherTimer ServerKeepAliveTimer { get; }
+
+        private async void ServerKeepAliveTimer_Tick(object sender, object arg)
+        {
             try
             {
-                Server.Start();
+                var task = KeepAliveAsyncAction?.Invoke();
+                if (task != null)
+                {
+                    await task;
+                }
             }
             catch (Exception e)
             {
-                Logger.Error?.Ex(e, "Couldn't start http server.");
+                Logger.Info?.Ex(e, "Failed to do keep-alive.");
+            }
+        }
+
+        public void StartServer()
+        {
+            Logger.Info?.Msg("Starting server");
+            if (!Server.Running)
+            {
+                try
+                {
+                    Server.Start();
+                }
+                catch (Exception e)
+                {
+                    Logger.Error?.Ex(e, "Couldn't start http server.");
+                }
+                ServerKeepAliveTimer.Start();
+            }
+        }
+
+        public void StopServer()
+        {
+            Logger.Info?.Msg("Stopping server");
+            if (Server.Running)
+            {
+                try
+                {
+                    Server.Stop();
+                }
+                catch (Exception e)
+                {
+                    Logger.Error?.Ex(e, "Couldn't stop http server.");
+                }
+                finally
+                {
+                    ServerKeepAliveTimer.Stop();
+                    KeepAliveAsyncAction = null;
+                }
             }
         }
 

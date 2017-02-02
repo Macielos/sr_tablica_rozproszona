@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using CloudBoard.Uwp.Models;
 using IotWeb.Common.Http;
+using Newtonsoft.Json;
 
 namespace CloudBoard.Uwp.Services
 {
     public class WebsocketServerRequestHandler : IWebSocketRequestHandler
     {
-        private const string Protocol = "echo";
+        private ImmutableArray<WebSocket> _clients = ImmutableArray<WebSocket>.Empty;
+        private readonly object _listLock = new object();
+        private const string Protocol = "";
 
         public WebsocketServerRequestHandler()
         {
@@ -17,38 +23,46 @@ namespace CloudBoard.Uwp.Services
         }
 
         private Logger Logger { get; }
-
-        public List<WebSocket> Clients { get; } = new List<WebSocket>();
-
+        
         public bool WillAcceptRequest(string uri, string protocol)
         {
-            return protocol == Protocol;
+            return true;
         }
 
         public void Connected(WebSocket socket)
         {
-            Clients.Add(socket);
-            socket.DataReceived += SocketOnDataReceived;
-            socket.ConnectionClosed += webSocket =>
+            lock (_listLock)
             {
-                Logger.Info?.Msg("Closed socket");
-                Clients.Remove(webSocket);
-            };
+                _clients = _clients.Add(socket);
+            }
+            Logger.Info?.Msg($"Opened socket ({_clients.Length} now open)");
+            socket.DataReceived += OnDataReceived;
+            socket.ConnectionClosed += OnConnectionClosed;
         }
 
-        private void SocketOnDataReceived(WebSocket socket, string frame)
+        private void OnConnectionClosed(WebSocket webSocket)
+        {
+            Logger.Info?.Msg($"Closed socket ({_clients.Length} now open)");
+            lock (_listLock)
+            {
+                _clients = _clients.Remove(webSocket);
+            }
+        }
+
+        private void OnDataReceived(WebSocket socket, string frame)
         {
             if (string.IsNullOrEmpty(frame))
             {
                 return;
             }
-            Logger.Info?.Msg($"Received msg: {frame}");
-            // TODO deserialize, check protocol
-            foreach (var client in Clients)
+            Logger.Debug?.Msg($"Received msg: {frame}");
+            // ReSharper disable once InconsistentlySynchronizedField
+            // reason: not critical
+            foreach (var client in _clients)
             {
-                //echo
                 try
                 {
+                    //echo
                     client.Send(frame);
                 }
                 catch (Exception e)

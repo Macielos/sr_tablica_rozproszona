@@ -6,6 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarToggleButton x:Name="EditToggleButton" Label="Edit/Pan" Icon="Edit" Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnUnchecked" />
+            <AppBarButton Label="Clear" Icon="Clear" Click="ClearButton_OnClick" />
+        </CommandBar>
+    </Page.BottomAppBar>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid>
@@ -24,24 +31,53 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.BoardHost.IpAddress, Mode=OneWay}" />
-                    <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="(you)" Grid.Column="2" Visibility="{x:Bind ViewModel.IsHostedLocally}"/>
+                    <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="(you)" Grid.Column="2" Visibility="{x:Bind ViewModel.IsHostedLocally}"/>
                 </Grid>
             </StackPanel>
             <ScrollViewer
+                x:Name="ScrollViewer"
                 Grid.Row="1"
                 ZoomMode="Enabled"
-                MinZoomFactor="1"
-                HorizontalScrollBarVisibility="Auto"
+                MinZoomFactor="0.5"
+                MaxZoomFactor="7.0"
+                HorizontalScrollBarVisibility="Visible"
                 HorizontalScrollMode="Enabled"
-                VerticalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Visible"
                 VerticalScrollMode="Enabled">
-                <Grid Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}">
-                    <InkCanvas x:Name="BoardCanvas" />
+                <Grid Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}"
+                      Width="600"
+                      Height="400"
+                      x:Name="BoardCanvas"
+                      PointerPressed="BoardCanvas_OnPointerPressed"
+                      PointerMoved="BoardCanvas_OnPointerMoved"
+                      PointerExited="BoardCanvas_OnPointerExited">
                 </Grid>
             </ScrollViewer>
+            <Grid
+                Grid.Row="1"
+                Visibility="{x:Bind ViewModel.IsConnectionError, Mode=OneWay}"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                <TextBlock
+                    MaxWidth="300"
+                    TextWrapping="WrapWholeWords"
+                    VerticalAlignment="Center"
+                    Text="Connection error. Server failed to respond. Check your network connection."/>
+            </Grid>
+            <Grid
+                x:Name="BoardTouchOverlay"
+                Grid.Row="1"
+                Visibility="Collapsed"
+                Background="Transparent"
+                PointerPressed="BoardTouchOverlay_OnPointerPressed"
+                PointerMoved="BoardTouchOverlay_OnPointerMoved"
+                PointerExited="BoardTouchOverlay_OnPointerExited"
+                ManipulationMode="All">
+            </Grid>
         </Grid>
-        <ContentDialog Title="Connecting" SecondaryButtonText="Cancel">
-            <ProgressRing IsActive="True"/>
+        <ContentDialog
+            x:Name="ConnectingDialog"
+            Title="Connecting">
+            <ProgressRing x:Name="ProgressRing" IsActive="{x:Bind ViewModel.IsConnecting, Mode=OneWay}"/>
         </ContentDialog>
     </Grid>
 </Page>

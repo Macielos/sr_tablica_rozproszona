@@ -13,6 +13,8 @@ namespace CloudBoard.Uwp.Services
     {
         public const int ServerPort = 8234;
 
+        public const string ServerProtocol = "drawClick";
+
         public static HttpServer CreateServer()
         {
             var server = new HttpServer(ServerPort);

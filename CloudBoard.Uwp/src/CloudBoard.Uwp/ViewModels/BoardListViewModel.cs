@@ -56,12 +56,11 @@ namespace CloudBoard.Uwp.ViewModels
             await BoardListService.UpdateBoardsAsync(UpdateHosts);
         }
 
-        public void OpenBoard(ImmutableBoardHost host, bool isHostedLocally = false)
+        public void OpenBoard(ImmutableBoardHost host)
         {
             ParentPage.Frame.Navigate(typeof(BoardPage), new BoardViewModel.LoadArgs
             {
-                Host = host,
-                IsHostedLocally = isHostedLocally
+                Host = host
             });
         }
 
@@ -73,7 +72,7 @@ namespace CloudBoard.Uwp.ViewModels
             }
             var host = await BoardListService.CreateBoardAsync(NewBoardName);
             // TODO host locally, navigate etc.
-            OpenBoard(host, isHostedLocally:true);
+            OpenBoard(host);
         }
 
         private void UpdateHosts(ImmutableArray<ImmutableBoardHost> hosts)

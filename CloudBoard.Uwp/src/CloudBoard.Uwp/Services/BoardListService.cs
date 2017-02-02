@@ -20,7 +20,10 @@ namespace CloudBoard.Uwp.Services
         public BoardListService()
         {
             Api = RestService.For<IBoardHostApi>(BoardsApiUri);
+            Logger = new Logger(nameof(BoardListService));
         }
+
+        private Logger Logger { get; }
 
         private IBoardHostApi Api { get; }
 
@@ -44,21 +47,37 @@ namespace CloudBoard.Uwp.Services
 
         public async Task UpdateHostAsync(ImmutableBoardHost host)
         {
+            Logger.Debug?.Msg("Sending keep-alive");
             var currentUri = LocalWebsocketServerProvider.GetLocalServerUri();
             var currentHost = host.ToMutable();
             currentHost.IpAddress = currentUri.ToString();
-            await Api.UpdateAsync(currentHost);
+            try
+            {
+                await Api.UpdateAsync(currentHost);
+            }
+            catch (Exception e)
+            {
+                Logger.Error?.Ex(e, "Failed to send keep-alive");
+            }
         }
 
         public async Task<ImmutableBoardHost> CreateBoardAsync(string name)
         {
             var uri = LocalWebsocketServerProvider.GetLocalServerUri();
-            var host = await Api.CreateAsync(new BoardHostCreate
+            try
             {
-                BoardName = name,
-                IpAddress = uri.ToString()
-            });
-            return host.ToImmutable();
+                var host = await Api.CreateAsync(new BoardHostCreate
+                {
+                    BoardName = name,
+                    IpAddress = uri.ToString()
+                });
+                return host.ToImmutable();
+            }
+            catch (Exception e)
+            {
+                Logger.Error?.Ex(e, "Failed to create board.");
+                throw;
+            }
         }
     }
 }

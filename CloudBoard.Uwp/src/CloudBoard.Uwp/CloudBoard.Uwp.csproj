@@ -98,6 +98,7 @@
     <Compile Include="Models\Board.cs" />
     <Compile Include="Models\BoardHost.cs" />
     <Compile Include="Models\BoardHostCreate.cs" />
+    <Compile Include="Models\DrawMessage.cs" />
     <Compile Include="Models\ImmutableBoard.cs" />
     <Compile Include="Models\ImmutableBoardHost.cs" />
     <Compile Include="Models\ImmutableExtensions.cs" />
